@@ -28,12 +28,8 @@
     "capacitor",
     "plugin",
     "native",
-    "twilio",
-    "voice",
-    "call",
-    "callkit",
-    "ios",
-    "android"
+    "google tag manager",
+    "GTM"
   ],
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
