@@ -16,7 +16,7 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getValue", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "reset", returnType: CAPPluginReturnPromise)
     ]
-    private let implementation = GoogleTagManager()
+    private let implementation = GTMManager()
 
     @objc func initialize(_ call: CAPPluginCall) {
         guard let containerId = call.getString("containerId") else {
@@ -43,8 +43,13 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
         
         let parameters = call.getObject("parameters") ?? [:]
         
-        implementation.push(event: event, parameters: parameters)
-        call.resolve()
+        implementation.push(event: event, parameters: parameters) { success, error in
+            if success {
+                call.resolve()
+            } else {
+                call.reject(error?.localizedDescription ?? "Failed to push event")
+            }
+        }
     }
 
     @objc func setUserProperty(_ call: CAPPluginCall) {
@@ -58,8 +63,13 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         
-        implementation.setUserProperty(key: key, value: value)
-        call.resolve()
+        implementation.setUserProperty(key: key, value: value) { success, error in
+            if success {
+                call.resolve()
+            } else {
+                call.reject(error?.localizedDescription ?? "Failed to set user property")
+            }
+        }
     }
 
     @objc func getValue(_ call: CAPPluginCall) {
@@ -68,12 +78,22 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         
-        let value = implementation.getValue(key: key)
-        call.resolve(["value": value as Any])
+        implementation.getValue(key: key) { value, error in
+            if let error = error {
+                call.reject(error.localizedDescription)
+            } else {
+                call.resolve(["value": value as Any])
+            }
+        }
     }
 
     @objc func reset(_ call: CAPPluginCall) {
-        implementation.reset()
-        call.resolve()
+        implementation.reset() { success, error in
+            if success {
+                call.resolve()
+            } else {
+                call.reject(error?.localizedDescription ?? "Failed to reset")
+            }
+        }
     }
 }

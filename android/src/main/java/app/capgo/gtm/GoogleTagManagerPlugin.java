@@ -5,7 +5,7 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import java.util.Iterator;
+import java.util.Map;
 
 @CapacitorPlugin(name = "GoogleTagManager")
 public class GoogleTagManagerPlugin extends Plugin {
@@ -26,16 +26,15 @@ public class GoogleTagManagerPlugin extends Plugin {
         }
 
         Double timeout = call.getDouble("timeout");
-        long timeoutMs = timeout != null ? timeout.longValue() * 1000 : 2000;
 
-        implementation.initialize(containerId, timeoutMs, new GoogleTagManager.Callback() {
+        implementation.initialize(containerId, timeout, new GoogleTagManager.Callback() {
             @Override
             public void onSuccess() {
                 call.resolve();
             }
 
             @Override
-            public void onError(String error) {
+            public void onFailure(String error) {
                 call.reject(error);
             }
         });
@@ -50,15 +49,16 @@ public class GoogleTagManagerPlugin extends Plugin {
         }
 
         JSObject parameters = call.getObject("parameters");
+        Map<String, Object> paramMap = parameters != null ? GoogleTagManager.jsObjectToMap(parameters) : null;
         
-        implementation.push(event, parameters, new GoogleTagManager.Callback() {
+        implementation.push(event, paramMap, new GoogleTagManager.Callback() {
             @Override
             public void onSuccess() {
                 call.resolve();
             }
 
             @Override
-            public void onError(String error) {
+            public void onFailure(String error) {
                 call.reject(error);
             }
         });
@@ -81,7 +81,7 @@ public class GoogleTagManagerPlugin extends Plugin {
             }
 
             @Override
-            public void onError(String error) {
+            public void onFailure(String error) {
                 call.reject(error);
             }
         });
@@ -97,14 +97,14 @@ public class GoogleTagManagerPlugin extends Plugin {
 
         implementation.getValue(key, new GoogleTagManager.ValueCallback() {
             @Override
-            public void onValue(Object value) {
+            public void onSuccess(Object value) {
                 JSObject ret = new JSObject();
                 ret.put("value", value);
                 call.resolve(ret);
             }
 
             @Override
-            public void onError(String error) {
+            public void onFailure(String error) {
                 call.reject(error);
             }
         });
@@ -119,7 +119,7 @@ public class GoogleTagManagerPlugin extends Plugin {
             }
 
             @Override
-            public void onError(String error) {
+            public void onFailure(String error) {
                 call.reject(error);
             }
         });

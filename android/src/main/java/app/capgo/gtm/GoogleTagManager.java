@@ -25,96 +25,148 @@ public class GoogleTagManager {
 
     public interface Callback {
         void onSuccess();
-        void onError(String error);
+        void onFailure(String error);
     }
 
     public interface ValueCallback {
-        void onValue(Object value);
-        void onError(String error);
+        void onSuccess(Object value);
+        void onFailure(String error);
     }
 
     public GoogleTagManager(Context context) {
         this.context = context;
     }
 
-    public void initialize(String containerId, long timeout, final Callback callback) {
+    public void initialize(String containerId, Double timeout, Callback callback) {
         if (initialized) {
             callback.onSuccess();
             return;
         }
 
-        tagManager = TagManager.getInstance(context);
-        tagManager.setVerboseLoggingEnabled(true);
-        dataLayer = tagManager.getDataLayer();
+        try {
+            tagManager = TagManager.getInstance(context);
+            dataLayer = tagManager.getDataLayer();
 
-        PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferFresh(containerId, -1);
-        
-        pending.setResultCallback(new ResultCallback<ContainerHolder>() {
-            @Override
-            public void onResult(ContainerHolder holder) {
-                containerHolder = holder;
-                container = holder.getContainer();
-                initialized = true;
-                Log.d(TAG, "Container loaded: " + containerId);
-                callback.onSuccess();
-            }
-        }, timeout, TimeUnit.MILLISECONDS);
+            // Set timeout
+            long timeoutMs = timeout != null ? timeout.longValue() : 2000;
+
+            // Load container
+            PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferFresh(containerId, -1);
+
+            pending.setResultCallback(new ResultCallback<ContainerHolder>() {
+                @Override
+                public void onResult(ContainerHolder containerHolder) {
+                    if (containerHolder != null && containerHolder.getStatus().isSuccess()) {
+                        GoogleTagManager.this.containerHolder = containerHolder;
+                        GoogleTagManager.this.container = containerHolder.getContainer();
+                        initialized = true;
+                        callback.onSuccess();
+                    } else {
+                        callback.onFailure("Failed to load container");
+                    }
+                }
+            }, timeoutMs, TimeUnit.MILLISECONDS);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to initialize GTM", e);
+            callback.onFailure(e.getMessage());
+        }
     }
 
-    public void push(String event, JSObject parameters, Callback callback) {
+    public void push(String event, Map<String, Object> parameters, Callback callback) {
         if (!initialized) {
-            callback.onError("Google Tag Manager not initialized");
+            callback.onFailure("GTM not initialized");
             return;
         }
 
-        Map<String, Object> dataLayerMap = new HashMap<>();
-        dataLayerMap.put("event", event);
-        
-        if (parameters != null) {
-            Iterator<String> keys = parameters.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                dataLayerMap.put(key, parameters.get(key));
+        try {
+            Map<String, Object> dataLayerMap = new HashMap<>();
+            dataLayerMap.put("event", event);
+            
+            if (parameters != null) {
+                dataLayerMap.putAll(parameters);
             }
-        }
 
-        dataLayer.push(dataLayerMap);
-        callback.onSuccess();
+            dataLayer.push(dataLayerMap);
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to push event", e);
+            callback.onFailure(e.getMessage());
+        }
     }
 
     public void setUserProperty(String key, Object value, Callback callback) {
         if (!initialized) {
-            callback.onError("Google Tag Manager not initialized");
+            callback.onFailure("GTM not initialized");
             return;
         }
 
-        Map<String, Object> dataLayerMap = new HashMap<>();
-        dataLayerMap.put(key, value);
-        dataLayer.push(dataLayerMap);
-        callback.onSuccess();
+        try {
+            dataLayer.push(DataLayer.mapOf(key, value));
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to set user property", e);
+            callback.onFailure(e.getMessage());
+        }
     }
 
     public void getValue(String key, ValueCallback callback) {
-        if (!initialized) {
-            callback.onError("Google Tag Manager not initialized");
+        if (!initialized || container == null) {
+            callback.onFailure("GTM not initialized");
             return;
         }
 
-        Object value = dataLayer.get(key);
-        callback.onValue(value);
+        try {
+            Object value = container.getString(key);
+            if (value == null) {
+                value = container.getDouble(key);
+            }
+            if (value == null) {
+                value = container.getBoolean(key);
+            }
+            callback.onSuccess(value);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to get value", e);
+            callback.onFailure(e.getMessage());
+        }
     }
 
     public void reset(Callback callback) {
-        if (containerHolder != null) {
-            containerHolder.release();
+        try {
+            if (dataLayer != null) {
+                dataLayer.push(DataLayer.mapOf("gtm.clear", true));
+            }
+
+            if (containerHolder != null) {
+                containerHolder.release();
+            }
+
+            tagManager = null;
+            container = null;
+            containerHolder = null;
+            dataLayer = null;
+            initialized = false;
+
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to reset", e);
+            callback.onFailure(e.getMessage());
         }
-        
-        tagManager = null;
-        container = null;
-        containerHolder = null;
-        dataLayer = null;
-        initialized = false;
-        
-        callback.onSuccess();
+    }
+
+    // Helper method to convert JSObject to Map
+    public static Map<String, Object> jsObjectToMap(JSObject jsObject) {
+        Map<String, Object> map = new HashMap<>();
+        Iterator<String> keys = jsObject.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            try {
+                Object value = jsObject.get(key);
+                map.put(key, value);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to convert key: " + key, e);
+            }
+        }
+        return map;
     }
 }

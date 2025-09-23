@@ -11,14 +11,12 @@ declare global {
 
 export class GoogleTagManagerWeb extends WebPlugin implements GoogleTagManagerPlugin {
   private initialized = false;
-  private containerId?: string;
 
   async initialize(options: { containerId: string; timeout?: number }): Promise<void> {
     if (this.initialized) {
       return;
     }
 
-    this.containerId = options.containerId;
     window.dataLayer = window.dataLayer || [];
 
     // Load GTM script
@@ -80,6 +78,5 @@ export class GoogleTagManagerWeb extends WebPlugin implements GoogleTagManagerPl
   async reset(): Promise<void> {
     window.dataLayer = [];
     this.initialized = false;
-    this.containerId = undefined;
   }
 }

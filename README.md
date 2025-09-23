@@ -2,6 +2,8 @@
 
 A Capacitor plugin for integrating Google Tag Manager into your mobile applications.
 
+> **Note**: This plugin uses the official Google Tag Manager SDK directly for both iOS and Android platforms.
+
 ## Installation
 
 ```bash
@@ -13,153 +15,19 @@ npx cap sync
 
 ### iOS Setup
 
-1. **Add your GTM container file**
-   - Download your container from Google Tag Manager console
-   - Add the downloaded `GTM-XXXXXX.json` file to your iOS project
-   - In Xcode, drag the file into your project
-   - Make sure "Copy items if needed" is selected
-   - Ensure the file is added to your app target
-
-2. **No additional configuration needed**
-   - The plugin uses Google Tag Manager SDK v7.4.6 which supports iOS 12+
-   - The plugin is compatible with iOS 14.0+
+1. **Add GTM container file**
+   - Download your container from Google Tag Manager console (GTM-XXXXXX.json)
+   - In Xcode, add the file to your project
+   - Make sure to add it to your app target
 
 ### Android Setup
 
-1. **Add your GTM container file**
-   - Download your container from Google Tag Manager console  
-   - Place the `GTM-XXXXXX.json` file in your Android project's `assets/containers/` folder
-   - Create the `containers` folder if it doesn't exist: `android/app/src/main/assets/containers/`
+1. **Add GTM container file**
+   - Download your container from Google Tag Manager console (GTM-XXXXXX.json)
+   - Place the file in `android/app/src/main/assets/containers/`
+   - Create the `containers` directory if it doesn't exist
 
-### Web Setup
-
-No additional setup is required for web. The plugin will automatically load the Google Tag Manager script.
-
-## Usage
-
-```typescript
-import { GoogleTagManager } from 'capacitor-gtm';
-
-// Initialize Google Tag Manager
-await GoogleTagManager.initialize({ 
-  containerId: 'GTM-XXXXXX',
-  timeout: 2000 // optional, defaults to 2000ms
-});
-
-// Push an event to the dataLayer
-await GoogleTagManager.push({
-  event: 'purchase',
-  parameters: {
-    value: 29.99,
-    currency: 'USD',
-    transaction_id: '12345'
-  }
-});
-
-// Set a user property
-await GoogleTagManager.setUserProperty({
-  key: 'user_type',
-  value: 'premium'
-});
-
-// Get a value from the container
-const result = await GoogleTagManager.getValue({ key: 'api_key' });
-console.log('API Key:', result.value);
-
-// Reset all data
-await GoogleTagManager.reset();
-```
-
-## Common Use Cases
-
-### Track Screen Views
-
-```typescript
-await GoogleTagManager.push({
-  event: 'screen_view',
-  parameters: {
-    screen_name: 'Home',
-    screen_class: 'HomeViewController'
-  }
-});
-```
-
-### Track User Actions
-
-```typescript
-await GoogleTagManager.push({
-  event: 'button_click',
-  parameters: {
-    button_name: 'subscribe',
-    button_location: 'header'
-  }
-});
-```
-
-### E-commerce Events
-
-```typescript
-// Track a purchase
-await GoogleTagManager.push({
-  event: 'purchase',
-  parameters: {
-    transaction_id: '12345',
-    value: 59.99,
-    currency: 'USD',
-    items: [{
-      item_id: 'SKU123',
-      item_name: 'Product Name',
-      price: 59.99,
-      quantity: 1
-    }]
-  }
-});
-
-// Track add to cart
-await GoogleTagManager.push({
-  event: 'add_to_cart',
-  parameters: {
-    currency: 'USD',
-    value: 29.99,
-    items: [{
-      item_id: 'SKU456',
-      item_name: 'Another Product',
-      price: 29.99,
-      quantity: 1
-    }]
-  }
-});
-```
-
-### User Properties
-
-```typescript
-// Set multiple user properties
-await GoogleTagManager.setUserProperty({
-  key: 'user_id',
-  value: 'USER123'
-});
-
-await GoogleTagManager.setUserProperty({
-  key: 'subscription_status',
-  value: 'active'
-});
-```
-
-### Custom Events
-
-```typescript
-await GoogleTagManager.push({
-  event: 'custom_event',
-  parameters: {
-    custom_parameter_1: 'value1',
-    custom_parameter_2: 123,
-    custom_parameter_3: true
-  }
-});
-```
-
-## API Reference
+## API
 
 <docgen-index>
 
@@ -269,38 +137,124 @@ This will remove all data from the dataLayer and require re-initialization.
 
 Construct a type with a set of properties K of type T
 
-<code>{
- [P in K]: T;
- }</code>
+<code>{ [P in K]: T; }</code>
 
 </docgen-api>
 
-## Testing & Debugging
-
-### Preview Mode
-
-To test your container configuration before publishing:
-
-1. In Google Tag Manager, click "Preview" in your workspace
-2. For mobile apps, you'll need to use the Google Tag Manager app for testing
-3. Follow the preview instructions in the GTM interface
-
-### Debug Mode
-
-Enable verbose logging by setting the log level in your app:
+## Usage Example
 
 ```typescript
-// This should be done before initializing GTM
-if (__DEV__) {
-  // Platform-specific debug enabling
-}
+import { GoogleTagManager } from 'capacitor-gtm';
+
+// Initialize GTM
+await GoogleTagManager.initialize({ 
+  containerId: 'GTM-XXXXXX',
+  timeout: 2000 // optional, defaults to 2000ms
+});
+
+// Track an event
+await GoogleTagManager.push({
+  event: 'purchase',
+  parameters: {
+    value: 29.99,
+    currency: 'USD',
+    items: ['item1', 'item2']
+  }
+});
+
+// Set user property
+await GoogleTagManager.setUserProperty({
+  key: 'user_type',
+  value: 'premium'
+});
+
+// Get a value from container
+const result = await GoogleTagManager.getValue({ key: 'api_key' });
+console.log('API Key:', result.value);
+
+// Reset data layer
+await GoogleTagManager.reset();
 ```
 
-## Requirements
+## Common Use Cases
 
-- **iOS**: Requires iOS 14.0 or later
-- **Android**: Requires Android 5.0 (API level 21) or later
-- **Web**: Works in all modern browsers
+### E-commerce Tracking
+
+```typescript
+// Track product view
+await GoogleTagManager.push({
+  event: 'view_item',
+  parameters: {
+    currency: 'USD',
+    value: 15.99,
+    items: [{
+      item_id: 'SKU123',
+      item_name: 'Product Name',
+      price: 15.99,
+      quantity: 1
+    }]
+  }
+});
+
+// Track purchase
+await GoogleTagManager.push({
+  event: 'purchase',
+  parameters: {
+    transaction_id: '12345',
+    value: 45.99,
+    currency: 'USD',
+    items: [{
+      item_id: 'SKU123',
+      item_name: 'Product Name',
+      price: 15.99,
+      quantity: 2
+    }]
+  }
+});
+```
+
+### User Engagement
+
+```typescript
+// Track screen view
+await GoogleTagManager.push({
+  event: 'screen_view',
+  parameters: {
+    screen_name: 'Home',
+    screen_class: 'HomeViewController'
+  }
+});
+
+// Track custom event
+await GoogleTagManager.push({
+  event: 'level_complete',
+  parameters: {
+    level: 5,
+    score: 1000,
+    time_spent: 300
+  }
+});
+```
+
+## Troubleshooting
+
+### iOS Issues
+
+1. **Container not loading**: Ensure the GTM container JSON file is properly added to your Xcode project and included in the app bundle.
+
+2. **Build errors**: Make sure you've run `npx cap sync` after installation.
+
+### Android Issues
+
+1. **Container not found**: Verify the container file is in the correct location: `android/app/src/main/assets/containers/GTM-XXXXXX.json`
+
+2. **Initialization failures**: Check that the container ID matches your GTM container exactly.
+
+### General Issues
+
+1. **Events not appearing in GTM**: Remember that GTM has a delay in showing real-time events. Also ensure your GTM container is published.
+
+2. **Values returning null**: Make sure the keys exist in your GTM container configuration.
 
 ## License
 
