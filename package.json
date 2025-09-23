@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capactior-gtm",
-  "version": "7.0.0",
+  "version": "7.0.2",
   "description": "Google Tag manager plugin for Capacitor",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -27,7 +27,9 @@
   "keywords": [
     "capacitor",
     "plugin",
-    "native"
+    "native",
+    "google tag manager",
+    "GTM"
   ],
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
