@@ -1,4 +1,4 @@
-package com.example.plugin;
+package app.capgo.gtm;
 
 import com.getcapacitor.BridgeActivity;
 
