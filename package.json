@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capactior-gtm",
-  "version": "7.0.7",
+  "version": "7.0.8",
   "description": "Google Tag manager plugin for Capacitor",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
