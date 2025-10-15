@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.0.12](https://github.com/Cap-go/capacitor-gtm/compare/7.0.11...7.0.12) (2025-10-15)
+
+
+### Bug Fixes
+
+* lint ([16ef435](https://github.com/Cap-go/capacitor-gtm/commit/16ef4356972dc1ad8f7a0b7046c4ced3fea52964))
+
 ## [7.0.11](https://github.com/Cap-go/capacitor-gtm/compare/7.0.10...7.0.11) (2025-10-15)
 
 
