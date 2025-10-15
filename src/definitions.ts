@@ -22,12 +22,12 @@ export interface GoogleTagManagerPlugin {
    * @returns {Promise<void>} A promise that resolves when the event is successfully pushed.
    * @since 1.0.0
    * @example
-   * await GoogleTagManager.push({ 
-   *   event: 'purchase', 
-   *   parameters: { 
-   *     value: 99.99, 
-   *     currency: 'USD' 
-   *   } 
+   * await GoogleTagManager.push({
+   *   event: 'purchase',
+   *   parameters: {
+   *     value: 99.99,
+   *     currency: 'USD'
+   *   }
    * });
    */
   push(options: { event: string; parameters?: Record<string, any> }): Promise<void>;
@@ -41,9 +41,9 @@ export interface GoogleTagManagerPlugin {
    * @returns {Promise<void>} A promise that resolves when the property is successfully set.
    * @since 1.0.0
    * @example
-   * await GoogleTagManager.setUserProperty({ 
-   *   key: 'user_type', 
-   *   value: 'premium' 
+   * await GoogleTagManager.setUserProperty({
+   *   key: 'user_type',
+   *   value: 'premium'
    * });
    */
   setUserProperty(options: { key: string; value: string | number | boolean }): Promise<void>;

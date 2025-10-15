@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class GoogleTagManager {
+
     private static final String TAG = "GoogleTagManager";
     private Context context;
     private TagManager tagManager;
@@ -53,20 +54,23 @@ public class GoogleTagManager {
             // Load container
             PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferFresh(containerId, -1);
 
-            pending.setResultCallback(new ResultCallback<ContainerHolder>() {
-                @Override
-                public void onResult(ContainerHolder containerHolder) {
-                    if (containerHolder != null && containerHolder.getStatus().isSuccess()) {
-                        GoogleTagManager.this.containerHolder = containerHolder;
-                        GoogleTagManager.this.container = containerHolder.getContainer();
-                        initialized = true;
-                        callback.onSuccess();
-                    } else {
-                        callback.onFailure("Failed to load container");
+            pending.setResultCallback(
+                new ResultCallback<ContainerHolder>() {
+                    @Override
+                    public void onResult(ContainerHolder containerHolder) {
+                        if (containerHolder != null && containerHolder.getStatus().isSuccess()) {
+                            GoogleTagManager.this.containerHolder = containerHolder;
+                            GoogleTagManager.this.container = containerHolder.getContainer();
+                            initialized = true;
+                            callback.onSuccess();
+                        } else {
+                            callback.onFailure("Failed to load container");
+                        }
                     }
-                }
-            }, timeoutMs, TimeUnit.MILLISECONDS);
-
+                },
+                timeoutMs,
+                TimeUnit.MILLISECONDS
+            );
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize GTM", e);
             callback.onFailure(e.getMessage());
@@ -82,7 +86,7 @@ public class GoogleTagManager {
         try {
             Map<String, Object> dataLayerMap = new HashMap<>();
             dataLayerMap.put("event", event);
-            
+
             if (parameters != null) {
                 dataLayerMap.putAll(parameters);
             }

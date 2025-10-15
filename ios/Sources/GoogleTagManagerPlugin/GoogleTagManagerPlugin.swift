@@ -23,9 +23,9 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject("Missing containerId parameter")
             return
         }
-        
+
         let timeout = call.getDouble("timeout")
-        
+
         implementation.initialize(containerId: containerId, timeout: timeout) { success, error in
             if success {
                 call.resolve()
@@ -40,9 +40,9 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject("Missing event parameter")
             return
         }
-        
+
         let parameters = call.getObject("parameters") ?? [:]
-        
+
         implementation.push(event: event, parameters: parameters) { success, error in
             if success {
                 call.resolve()
@@ -57,12 +57,12 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject("Missing key parameter")
             return
         }
-        
+
         guard let value = call.getValue("value") else {
             call.reject("Missing value parameter")
             return
         }
-        
+
         implementation.setUserProperty(key: key, value: value) { success, error in
             if success {
                 call.resolve()
@@ -77,7 +77,7 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject("Missing key parameter")
             return
         }
-        
+
         implementation.getValue(key: key) { value, error in
             if let error = error {
                 call.reject(error.localizedDescription)
@@ -88,7 +88,7 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func reset(_ call: CAPPluginCall) {
-        implementation.reset() { success, error in
+        implementation.reset { success, error in
             if success {
                 call.resolve()
             } else {

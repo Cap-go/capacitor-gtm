@@ -23,13 +23,13 @@ export class GoogleTagManagerWeb extends WebPlugin implements GoogleTagManagerPl
     const script = document.createElement('script');
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtm.js?id=${options.containerId}`;
-    
+
     const firstScript = document.getElementsByTagName('script')[0];
     firstScript.parentNode?.insertBefore(script, firstScript);
 
     // Initialize gtag
-    window.gtag = function() {
-      window.dataLayer.push(arguments);
+    window.gtag = function (...args) {
+      window.dataLayer.push(args);
     };
     window.gtag('js', new Date());
     window.gtag('config', options.containerId);
@@ -46,7 +46,7 @@ export class GoogleTagManagerWeb extends WebPlugin implements GoogleTagManagerPl
     if (options.parameters) {
       Object.assign(data, options.parameters);
     }
-    
+
     window.dataLayer.push(data);
   }
 
@@ -56,7 +56,7 @@ export class GoogleTagManagerWeb extends WebPlugin implements GoogleTagManagerPl
     }
 
     window.dataLayer.push({
-      [options.key]: options.value
+      [options.key]: options.value,
     });
   }
 

@@ -34,7 +34,7 @@ private enum GTMRuntime {
     private let valueForKeySelector = NSSelectorFromString("valueForKey:")
     private let preferFreshOpenType: UInt = 0
 
-    public override init() {
+    override public init() {
         super.init()
         self.tagManager = GTMManager.resolveTagManager()
     }

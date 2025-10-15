@@ -27,17 +27,21 @@ public class GoogleTagManagerPlugin extends Plugin {
 
         Double timeout = call.getDouble("timeout");
 
-        implementation.initialize(containerId, timeout, new GoogleTagManager.Callback() {
-            @Override
-            public void onSuccess() {
-                call.resolve();
-            }
+        implementation.initialize(
+            containerId,
+            timeout,
+            new GoogleTagManager.Callback() {
+                @Override
+                public void onSuccess() {
+                    call.resolve();
+                }
 
-            @Override
-            public void onFailure(String error) {
-                call.reject(error);
+                @Override
+                public void onFailure(String error) {
+                    call.reject(error);
+                }
             }
-        });
+        );
     }
 
     @PluginMethod
@@ -50,41 +54,49 @@ public class GoogleTagManagerPlugin extends Plugin {
 
         JSObject parameters = call.getObject("parameters");
         Map<String, Object> paramMap = parameters != null ? GoogleTagManager.jsObjectToMap(parameters) : null;
-        
-        implementation.push(event, paramMap, new GoogleTagManager.Callback() {
-            @Override
-            public void onSuccess() {
-                call.resolve();
-            }
 
-            @Override
-            public void onFailure(String error) {
-                call.reject(error);
+        implementation.push(
+            event,
+            paramMap,
+            new GoogleTagManager.Callback() {
+                @Override
+                public void onSuccess() {
+                    call.resolve();
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    call.reject(error);
+                }
             }
-        });
+        );
     }
 
     @PluginMethod
     public void setUserProperty(PluginCall call) {
         String key = call.getString("key");
         Object value = call.getData().opt("value");
-        
+
         if (key == null || value == null) {
             call.reject("Missing key or value parameter");
             return;
         }
 
-        implementation.setUserProperty(key, value, new GoogleTagManager.Callback() {
-            @Override
-            public void onSuccess() {
-                call.resolve();
-            }
+        implementation.setUserProperty(
+            key,
+            value,
+            new GoogleTagManager.Callback() {
+                @Override
+                public void onSuccess() {
+                    call.resolve();
+                }
 
-            @Override
-            public void onFailure(String error) {
-                call.reject(error);
+                @Override
+                public void onFailure(String error) {
+                    call.reject(error);
+                }
             }
-        });
+        );
     }
 
     @PluginMethod
@@ -95,33 +107,38 @@ public class GoogleTagManagerPlugin extends Plugin {
             return;
         }
 
-        implementation.getValue(key, new GoogleTagManager.ValueCallback() {
-            @Override
-            public void onSuccess(Object value) {
-                JSObject ret = new JSObject();
-                ret.put("value", value);
-                call.resolve(ret);
-            }
+        implementation.getValue(
+            key,
+            new GoogleTagManager.ValueCallback() {
+                @Override
+                public void onSuccess(Object value) {
+                    JSObject ret = new JSObject();
+                    ret.put("value", value);
+                    call.resolve(ret);
+                }
 
-            @Override
-            public void onFailure(String error) {
-                call.reject(error);
+                @Override
+                public void onFailure(String error) {
+                    call.reject(error);
+                }
             }
-        });
+        );
     }
 
     @PluginMethod
     public void reset(PluginCall call) {
-        implementation.reset(new GoogleTagManager.Callback() {
-            @Override
-            public void onSuccess() {
-                call.resolve();
-            }
+        implementation.reset(
+            new GoogleTagManager.Callback() {
+                @Override
+                public void onSuccess() {
+                    call.resolve();
+                }
 
-            @Override
-            public void onFailure(String error) {
-                call.reject(error);
+                @Override
+                public void onFailure(String error) {
+                    call.reject(error);
+                }
             }
-        });
+        );
     }
 }
