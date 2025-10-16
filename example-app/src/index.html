@@ -11,14 +11,55 @@
   </head>
   <body>
     <main>
-      <h1>Capacitor Test Plugin Project</h1>
+      <h1>@capgo/capacitor-gtm Demo</h1>
       <p>
-        This project can be used to test out the functionality of your plugin. Nothing in the
-        <em>example-app/</em> folder will be published to npm when using this template, so you can create away!
+        Use these controls to exercise <code>GoogleTagManager</code> APIs. All calls execute against the native
+        implementation when run on device.
       </p>
-      <label for="echoInput">Echo Text:</label>
-      <input type="text" id="echoInput" name="echoInput" value="Hello World!" />
-      <button onclick="testEcho()">Click Me!</button>
+
+      <section>
+        <h2>Initialize Container</h2>
+        <label for="containerId">Container ID</label>
+        <input type="text" id="containerId" name="containerId" value="GTM-XXXXXXX" />
+        <label for="timeout">Timeout (ms)</label>
+        <input type="number" id="timeout" name="timeout" value="2000" min="0" />
+        <button id="initializeButton" type="button">Initialize</button>
+      </section>
+
+      <section>
+        <h2>Push Event</h2>
+        <label for="eventName">Event Name</label>
+        <input type="text" id="eventName" name="eventName" value="test_event" />
+        <label for="eventParams">Parameters (JSON object)</label>
+        <textarea id="eventParams" name="eventParams" rows="4">{ "value": 42, "currency": "USD" }</textarea>
+        <button id="pushButton" type="button">Push Event</button>
+      </section>
+
+      <section>
+        <h2>User Property</h2>
+        <label for="propertyKey">Property Key</label>
+        <input type="text" id="propertyKey" name="propertyKey" value="user_type" />
+        <label for="propertyValue">Property Value</label>
+        <input type="text" id="propertyValue" name="propertyValue" value="beta_tester" />
+        <button id="userPropertyButton" type="button">Set User Property</button>
+      </section>
+
+      <section>
+        <h2>Lookup Value</h2>
+        <label for="lookupKey">Key</label>
+        <input type="text" id="lookupKey" name="lookupKey" value="user_type" />
+        <button id="getValueButton" type="button">Get Value</button>
+      </section>
+
+      <section>
+        <h2>Maintenance</h2>
+        <button id="resetButton" type="button">Reset Container</button>
+      </section>
+
+      <section>
+        <h2>Logs</h2>
+        <pre id="logOutput">Ready.</pre>
+      </section>
     </main>
 
     <script src="./js/example.js" type="module"></script>
