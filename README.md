@@ -36,6 +36,7 @@ npx cap sync
 * [`setUserProperty(...)`](#setuserproperty)
 * [`getValue(...)`](#getvalue)
 * [`reset()`](#reset)
+* [`getPluginVersion()`](#getpluginversion)
 * [Type Aliases](#type-aliases)
 
 </docgen-index>
@@ -126,6 +127,19 @@ Resets the Google Tag Manager instance and clears all data.
 This will remove all data from the dataLayer and require re-initialization.
 
 **Since:** 1.0.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+Get the native Capacitor plugin version
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 
