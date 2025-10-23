@@ -7,7 +7,7 @@ import Capacitor
  */
 @objc(GoogleTagManagerPlugin)
 public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
-    private let PLUGIN_VERSION: String = "7.1.0"
+    private let PLUGIN_VERSION: String = "7.1.1"
     public let identifier = "GoogleTagManagerPlugin"
     public let jsName = "GoogleTagManager"
     public let pluginMethods: [CAPPluginMethod] = [

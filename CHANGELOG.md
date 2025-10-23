@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.1.1](https://github.com/Cap-go/capacitor-gtm/compare/7.1.0...7.1.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* remove footer in discord ([044f76b](https://github.com/Cap-go/capacitor-gtm/commit/044f76b01486c811b85c86ab6afde0cd28e0c9f4))
+* update Discord release notification username to include repository name ([c1ab867](https://github.com/Cap-go/capacitor-gtm/commit/c1ab8673c7be5e2987ef2bf256583def91c956dd))
+
 ## [7.1.0](https://github.com/Cap-go/capacitor-gtm/compare/7.0.13...7.1.0) (2025-10-23)
 
 
