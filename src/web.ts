@@ -79,4 +79,8 @@ export class GoogleTagManagerWeb extends WebPlugin implements GoogleTagManagerPl
     window.dataLayer = [];
     this.initialized = false;
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }

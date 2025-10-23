@@ -7,6 +7,7 @@ import Capacitor
  */
 @objc(GoogleTagManagerPlugin)
 public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
+    private let PLUGIN_VERSION: String = ""
     public let identifier = "GoogleTagManagerPlugin"
     public let jsName = "GoogleTagManager"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -14,7 +15,8 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "push", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserProperty", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getValue", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "reset", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "reset", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
     private let implementation = GTMManager()
 
@@ -96,4 +98,9 @@ public class GoogleTagManagerPlugin: CAPPlugin, CAPBridgedPlugin {
             }
         }
     }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": self.PLUGIN_VERSION])
+    }
+
 }
