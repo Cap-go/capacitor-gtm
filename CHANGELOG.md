@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.1.0](https://github.com/Cap-go/capacitor-gtm/compare/7.0.13...7.1.0) (2025-10-23)
+
+
+### Features
+
+* add getPluginVersion method to GoogleTagManagerPlugin and web implementation ([f4d84d4](https://github.com/Cap-go/capacitor-gtm/commit/f4d84d4e9747d048dc37fa1d6951a581bbc13ebc))
+
+
+### Bug Fixes
+
+* remove content field from Discord release notification ([75e0a28](https://github.com/Cap-go/capacitor-gtm/commit/75e0a2838c23ed24e2d7849ce20ebaf44aac4b6f))
+
 ## [7.0.13](https://github.com/Cap-go/capacitor-gtm/compare/7.0.12...7.0.13) (2025-10-16)
 
 ## [7.0.12](https://github.com/Cap-go/capacitor-gtm/compare/7.0.11...7.0.12) (2025-10-15)
