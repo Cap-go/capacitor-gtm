@@ -4,6 +4,10 @@ A Capacitor plugin for integrating Google Tag Manager into your mobile applicati
 
 > **Note**: This plugin uses the official Google Tag Manager SDK directly for both iOS and Android platforms.
 
+## Documentation
+
+The most complete doc is available here: https://capgo.app/docs/plugins/gtm/
+
 ## Installation
 
 ```bash
