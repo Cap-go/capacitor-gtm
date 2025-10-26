@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@capacitor/core": "latest",
-    "@capgo/capactior-gtm": "file:..",
+    "@capgo/capacitor-gtm": "file:..",
     "@capacitor/ios": "7.0.0",
     "@capacitor/android": "7.0.0"
   },
