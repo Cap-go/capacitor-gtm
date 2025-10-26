@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.1.3](https://github.com/Cap-go/capacitor-gtm/compare/7.1.2...7.1.3) (2025-10-26)
+
+
+### Bug Fixes
+
+* prevent bump for app ([76145fa](https://github.com/Cap-go/capacitor-gtm/commit/76145fa2f61096619687088604d5914cf4fee501))
+
 ## [7.1.2](https://github.com/Cap-go/capacitor-gtm/compare/7.1.1...7.1.2) (2025-10-26)
 
 ## [7.1.1](https://github.com/Cap-go/capacitor-gtm/compare/7.1.0...7.1.1) (2025-10-23)
