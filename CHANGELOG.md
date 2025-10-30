@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.1.6](https://github.com/Cap-go/capacitor-gtm/compare/7.1.5...7.1.6) (2025-10-30)
+
+
+### Bug Fixes
+
+* CI/CD config ([b0c8cbc](https://github.com/Cap-go/capacitor-gtm/commit/b0c8cbc9f9f3154d219c25468423e19c36b5d405))
+* pluginVersion lint issue ([bb671fc](https://github.com/Cap-go/capacitor-gtm/commit/bb671fc43d4c74aac010fb39b15f2fc12998b5a5))
+* update AI model in build workflow ([2929f8d](https://github.com/Cap-go/capacitor-gtm/commit/2929f8d106415608dae1d47c8ac05de6e32d0162))
+* update github action ([99b5e9f](https://github.com/Cap-go/capacitor-gtm/commit/99b5e9fd30f9bd6d84b7c0227fc9d48ebfa0a53a))
+
 ## [7.1.5](https://github.com/Cap-go/capacitor-gtm/compare/7.1.4...7.1.5) (2025-10-27)
 
 
