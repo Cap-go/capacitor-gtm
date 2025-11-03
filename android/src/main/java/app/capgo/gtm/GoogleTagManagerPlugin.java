@@ -10,7 +10,7 @@ import java.util.Map;
 @CapacitorPlugin(name = "GoogleTagManager")
 public class GoogleTagManagerPlugin extends Plugin {
 
-    private final String pluginVersion = "7.1.6";
+    private final String pluginVersion = "7.1.7";
 
     private GoogleTagManager implementation;
 
