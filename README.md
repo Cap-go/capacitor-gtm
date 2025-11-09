@@ -11,7 +11,7 @@ The most complete doc is available here: https://capgo.app/docs/plugins/gtm/
 ## Installation
 
 ```bash
-npm install capacitor-gtm
+npm install @capgo/capacitor-gtm
 npx cap sync
 ```
 
@@ -162,7 +162,7 @@ Construct a type with a set of properties K of type T
 ## Usage Example
 
 ```typescript
-import { GoogleTagManager } from 'capacitor-gtm';
+import { GoogleTagManager } from '@capgo/capacitor-gtm';
 
 // Initialize GTM
 await GoogleTagManager.initialize({ 

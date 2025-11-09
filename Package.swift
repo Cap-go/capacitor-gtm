@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "CapgoCapactiorGtm",
+    name: "CapgoCapacitorGtm",
     platforms: [.iOS(.v14)],
     products: [
         .library(
-            name: "CapgoCapactiorGtm",
+            name: "CapgoCapacitorGtm",
             targets: ["GoogleTagManagerPlugin"])
     ],
     dependencies: [
