@@ -11,7 +11,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
-        .package(url: "https://github.com/googleanalytics/google-tag-manager-ios-sdk.git", exact: "7.4.6")
+        .package(url: "https://github.com/googleanalytics/google-tag-manager-ios-sdk.git", exact: "9.0.0")
     ],
     targets: [
         .target(
