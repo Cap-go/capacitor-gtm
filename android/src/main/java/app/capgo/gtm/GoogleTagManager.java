@@ -9,8 +9,12 @@ import com.google.android.gms.tagmanager.Container;
 import com.google.android.gms.tagmanager.ContainerHolder;
 import com.google.android.gms.tagmanager.DataLayer;
 import com.google.android.gms.tagmanager.TagManager;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -50,9 +54,13 @@ public class GoogleTagManager {
 
             // Set timeout
             long timeoutMs = timeout != null ? timeout.longValue() : 2000;
+            int defaultContainerResourceId = resolveDefaultContainerResourceId(containerId);
 
             // Load container
-            PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferFresh(containerId, -1);
+            PendingResult<ContainerHolder> pending = loadContainer(
+                containerId,
+                defaultContainerResourceId
+            );
 
             pending.setResultCallback(
                 new ResultCallback<ContainerHolder>() {
@@ -74,6 +82,81 @@ public class GoogleTagManager {
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize GTM", e);
             callback.onFailure(e.getMessage());
+        }
+    }
+
+    private int resolveDefaultContainerResourceId(String containerId) {
+        String resourceName = containerId
+            .toLowerCase(Locale.US)
+            .replace('-', '_');
+        int resourceId = context.getResources().getIdentifier(
+            resourceName,
+            "raw",
+            context.getPackageName()
+        );
+
+        if (resourceId == 0) {
+            Log.w(
+                TAG,
+                "No default GTM container resource found for "
+                    + containerId
+                    + ". Expected res/raw/"
+                    + resourceName
+            );
+            return -1;
+        }
+
+        if (isUnsupportedExportContainer(resourceId)) {
+            Log.w(
+                TAG,
+                "Ignoring raw GTM resource "
+                    + resourceName
+                    + " because Android default containers must use the GTM default-container format."
+            );
+            return -1;
+        }
+
+        Log.d(TAG, "Using default GTM container resource " + resourceName + " (" + resourceId + ")");
+        return resourceId;
+    }
+
+    private PendingResult<ContainerHolder> loadContainer(
+        String containerId,
+        int defaultContainerResourceId
+    ) {
+        try {
+            return tagManager.loadContainerPreferFresh(containerId, defaultContainerResourceId);
+        } catch (RuntimeException error) {
+            if (defaultContainerResourceId != -1) {
+                Log.w(
+                    TAG,
+                    "Default GTM container resource could not be loaded. Retrying network-only initialization.",
+                    error
+                );
+                return tagManager.loadContainerPreferFresh(containerId, -1);
+            }
+            throw error;
+        }
+    }
+
+    private boolean isUnsupportedExportContainer(int resourceId) {
+        try (
+            InputStream inputStream = context.getResources().openRawResource(resourceId);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
+        ) {
+            byte[] buffer = new byte[1024];
+            int read;
+
+            while ((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }
+
+            String content = outputStream.toString(StandardCharsets.UTF_8);
+            return content.contains("\"exportFormatVersion\"")
+                && content.contains("\"containerVersion\"");
+        } catch (Exception error) {
+            Log.w(TAG, "Failed to inspect default GTM container resource " + resourceId, error);
+            return false;
         }
     }
 
