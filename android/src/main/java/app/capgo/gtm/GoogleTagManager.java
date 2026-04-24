@@ -58,10 +58,7 @@ public class GoogleTagManager {
             int defaultContainerResourceId = resolveDefaultContainerResourceId(containerId);
 
             // Load container
-            PendingResult<ContainerHolder> pending = loadContainer(
-                containerId,
-                defaultContainerResourceId
-            );
+            PendingResult<ContainerHolder> pending = loadContainer(containerId, defaultContainerResourceId);
 
             pending.setResultCallback(
                 new ResultCallback<ContainerHolder>() {
@@ -87,32 +84,20 @@ public class GoogleTagManager {
     }
 
     private int resolveDefaultContainerResourceId(String containerId) {
-        String resourceName = containerId
-            .toLowerCase(Locale.US)
-            .replace('-', '_');
-        int resourceId = context.getResources().getIdentifier(
-            resourceName,
-            "raw",
-            context.getPackageName()
-        );
+        String resourceName = containerId.toLowerCase(Locale.US).replace('-', '_');
+        int resourceId = context.getResources().getIdentifier(resourceName, "raw", context.getPackageName());
 
         if (resourceId == 0) {
-            Log.w(
-                TAG,
-                "No default GTM container resource found for "
-                    + containerId
-                    + ". Expected res/raw/"
-                    + resourceName
-            );
+            Log.w(TAG, "No default GTM container resource found for " + containerId + ". Expected res/raw/" + resourceName);
             return -1;
         }
 
         if (isUnsupportedExportContainer(resourceId)) {
             Log.w(
                 TAG,
-                "Ignoring raw GTM resource "
-                    + resourceName
-                    + " because Android default containers must use the GTM default-container format."
+                "Ignoring raw GTM resource " +
+                    resourceName +
+                    " because Android default containers must use the GTM default-container format."
             );
             return -1;
         }
@@ -121,19 +106,12 @@ public class GoogleTagManager {
         return resourceId;
     }
 
-    private PendingResult<ContainerHolder> loadContainer(
-        String containerId,
-        int defaultContainerResourceId
-    ) {
+    private PendingResult<ContainerHolder> loadContainer(String containerId, int defaultContainerResourceId) {
         try {
             return tagManager.loadContainerPreferFresh(containerId, defaultContainerResourceId);
         } catch (RuntimeException error) {
             if (defaultContainerResourceId != -1) {
-                Log.w(
-                    TAG,
-                    "Default GTM container resource could not be loaded. Retrying network-only initialization.",
-                    error
-                );
+                Log.w(TAG, "Default GTM container resource could not be loaded. Retrying network-only initialization.", error);
                 return tagManager.loadContainerPreferFresh(containerId, -1);
             }
             throw error;
@@ -149,21 +127,14 @@ public class GoogleTagManager {
             int read;
 
             while (
-                outputStream.size() < MAX_FORMAT_SNIFF_BYTES
-                    && (
-                        read = inputStream.read(
-                            buffer,
-                            0,
-                            Math.min(buffer.length, remainingCapacity(outputStream))
-                        )
-                    ) != -1
+                outputStream.size() < MAX_FORMAT_SNIFF_BYTES &&
+                (read = inputStream.read(buffer, 0, Math.min(buffer.length, remainingCapacity(outputStream)))) != -1
             ) {
                 outputStream.write(buffer, 0, read);
             }
 
             String content = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-            return content.contains("\"exportFormatVersion\"")
-                && content.contains("\"containerVersion\"");
+            return content.contains("\"exportFormatVersion\"") && content.contains("\"containerVersion\"");
         } catch (Exception error) {
             Log.w(TAG, "Failed to inspect default GTM container resource " + resourceId, error);
             return false;
