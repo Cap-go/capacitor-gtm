@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class GoogleTagManager {
 
     private static final String TAG = "GoogleTagManager";
+    private static final int MAX_FORMAT_SNIFF_BYTES = 8 * 1024;
     private Context context;
     private TagManager tagManager;
     private Container container;
@@ -147,17 +148,30 @@ public class GoogleTagManager {
             byte[] buffer = new byte[1024];
             int read;
 
-            while ((read = inputStream.read(buffer)) != -1) {
+            while (
+                outputStream.size() < MAX_FORMAT_SNIFF_BYTES
+                    && (
+                        read = inputStream.read(
+                            buffer,
+                            0,
+                            Math.min(buffer.length, remainingCapacity(outputStream))
+                        )
+                    ) != -1
+            ) {
                 outputStream.write(buffer, 0, read);
             }
 
-            String content = outputStream.toString(StandardCharsets.UTF_8);
+            String content = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
             return content.contains("\"exportFormatVersion\"")
                 && content.contains("\"containerVersion\"");
         } catch (Exception error) {
             Log.w(TAG, "Failed to inspect default GTM container resource " + resourceId, error);
             return false;
         }
+    }
+
+    private int remainingCapacity(ByteArrayOutputStream outputStream) {
+        return Math.max(1, MAX_FORMAT_SNIFF_BYTES - outputStream.size());
     }
 
     public void push(String event, Map<String, Object> parameters, Callback callback) {

@@ -277,7 +277,7 @@ await GoogleTagManager.push({
 
 ### Android Issues
 
-1. **Container not found**: Verify the default container is available as `android/app/src/main/res/raw/gtm_xxxxxx` and that the resource name matches your container ID after lowercasing and replacing `-` with `_`
+1. **Container not found**: Verify the default container is available under `android/app/src/main/res/raw/` with a filename like `gtm_xxxxxx.json` or `gtm_xxxxxx.bin`. The resource name (filename without the extension) must match your container ID after lowercasing and replacing `-` with `_`.
 
 2. **Initialization failures**: Check that the container ID matches your GTM container exactly.
 
