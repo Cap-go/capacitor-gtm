@@ -38,9 +38,11 @@ npx cap sync
 ### Android Setup
 
 1. **Add GTM container file**
-   - Download your container from Google Tag Manager console (GTM-XXXXXX.json)
-   - Place the file in `android/app/src/main/assets/containers/`
-   - Create the `containers` directory if it doesn't exist
+   - Download the Android default container from Google Tag Manager
+   - Add it as a raw resource in `android/app/src/main/res/raw/`
+   - Rename the file if needed so it uses only lowercase letters, digits, and underscores
+   - The plugin resolves the resource name from your container ID, for example `GTM-ABCD12` becomes `res/raw/gtm_abcd12`
+   - If you use JSON instead of the downloaded binary, it must be a simple default-container JSON. Full GTM export JSON files are not supported by the Android SDK
 
 ## API
 
@@ -275,7 +277,7 @@ await GoogleTagManager.push({
 
 ### Android Issues
 
-1. **Container not found**: Verify the container file is in the correct location: `android/app/src/main/assets/containers/GTM-XXXXXX.json`
+1. **Container not found**: Verify the default container is available under `android/app/src/main/res/raw/` with a filename like `gtm_xxxxxx.json` or `gtm_xxxxxx.bin`. The resource name (filename without the extension) must match your container ID after lowercasing and replacing `-` with `_`.
 
 2. **Initialization failures**: Check that the container ID matches your GTM container exactly.
 
