@@ -1,5 +1,7 @@
 # Capacitor Google Tag Manager Plugin
 
+<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-gtm" alt="Capgo - Instant updates for Capacitor" /></a>
+
 A Capacitor plugin for integrating Google Tag Manager into your mobile applications.
 
 > **Note**: This plugin uses the official Google Tag Manager SDK directly for both iOS and Android platforms.
