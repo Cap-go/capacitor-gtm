@@ -55,7 +55,10 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.core:core:$androidxCoreVersion"
     implementation 'com.google.android.gms:play-services-tagmanager:18.3.0'
-    implementation 'com.google.android.gms:play-services-tagmanager-v4-impl:18.1.1'
+    // NOTE: Do not depend on `play-services-tagmanager-v4-impl`.
+    // It pulls in `play-services-analytics-impl`, which duplicates internal GTM classes
+    // already provided by `play-services-tagmanager` and causes Android builds to fail
+    // with "Duplicate class com.google.android.gms.internal.gtm.*".
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
