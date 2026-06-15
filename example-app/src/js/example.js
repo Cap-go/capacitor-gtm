@@ -1,3 +1,5 @@
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+import { Capacitor } from '@capacitor/core';
 import { GoogleTagManager } from '@capgo/capacitor-gtm';
 
 const containerIdInput = document.getElementById('containerId');
@@ -124,3 +126,9 @@ resetButton?.addEventListener('click', async () => {
     log('Reset failed', { message });
   }
 });
+
+if (Capacitor.isNativePlatform()) {
+  CapacitorUpdater.notifyAppReady().catch((error) => {
+    console.error('Capgo notifyAppReady failed', error);
+  });
+}
