@@ -22,17 +22,24 @@ private enum GTMRuntime {
     }
 }
 
+private enum TAGContainerLoadState: UInt {
+    case notLoaded = 0
+    case loading = 1
+    case loaded = 2
+    case failed = 3
+}
+
 @objc public final class GTMManager: NSObject {
     private var tagManager: NSObject?
     private var container: NSObject?
     private var initialized = false
     private var initializationCompletion: ((Bool, NSError?) -> Void)?
 
-    private let openSelector = NSSelectorFromString("openContainerWithId:tagManager:openType:timeout:notifier:")
-    private let pushSelector = NSSelectorFromString("push:")
-    private let dataLayerKey = "dataLayer"
+    private let loadContainerSelector = NSSelectorFromString("loadContainer:")
+    private let forwardEventSelector = NSSelectorFromString("forwardEvent:")
+    private let loadStateSelector = NSSelectorFromString("loadState")
     private let valueForKeySelector = NSSelectorFromString("valueForKey:")
-    private let preferFreshOpenType: UInt = 0
+    private let containersKey = "containers"
 
     override public init() {
         super.init()
@@ -55,56 +62,39 @@ private enum GTMRuntime {
             return
         }
 
-        guard let openerClass = GTMRuntime.classNamed("TAGContainerOpener") else {
-            completion(false, GTMErrorFactory.make("TAGContainerOpener class not found."))
+        guard GTMRuntime.instanceResponds(manager, to: loadContainerSelector) else {
+            completion(false, GTMErrorFactory.make("TAGManager missing loadContainer: selector."))
             return
         }
-
-        guard GTMRuntime.classResponds(openerClass, to: openSelector),
-              let method = class_getClassMethod(openerClass, openSelector) else {
-            completion(false, GTMErrorFactory.make("TAGContainerOpener missing required selector."))
-            return
-        }
-
-        typealias OpenFn = @convention(c) (AnyClass, Selector, NSString, NSObject, UInt, Double, GTMManager) -> Void
-        let implementation = method_getImplementation(method)
-        let open = unsafeBitCast(implementation, to: OpenFn.self)
 
         initializationCompletion = completion
-
         let timeoutValue = timeout ?? 5.0
-        open(openerClass, openSelector, containerId as NSString, manager, preferFreshOpenType, timeoutValue, self)
+
+        _ = manager.perform(loadContainerSelector, with: containerId)
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.waitForContainer(containerId: containerId, timeout: timeoutValue)
+        }
     }
 
     public func push(event: String, parameters: [String: Any]?, completion: @escaping (Bool, NSError?) -> Void) {
-        guard initialized, let dataLayer = currentDataLayer() else {
+        guard initialized, let container = container else {
             completion(false, GTMErrorFactory.make("Google Tag Manager not initialized"))
             return
         }
 
         var payload = parameters ?? [:]
         payload["event"] = event
-
-        if GTMRuntime.instanceResponds(dataLayer, to: pushSelector) {
-            _ = dataLayer.perform(pushSelector, with: payload)
-            completion(true, nil)
-        } else {
-            completion(false, GTMErrorFactory.make("DataLayer push selector unavailable"))
-        }
+        forwardEvent(payload, on: container, completion: completion)
     }
 
     public func setUserProperty(key: String, value: Any, completion: @escaping (Bool, NSError?) -> Void) {
-        guard initialized, let dataLayer = currentDataLayer() else {
+        guard initialized, let container = container else {
             completion(false, GTMErrorFactory.make("Google Tag Manager not initialized"))
             return
         }
 
-        if GTMRuntime.instanceResponds(dataLayer, to: pushSelector) {
-            _ = dataLayer.perform(pushSelector, with: [key: value])
-            completion(true, nil)
-        } else {
-            completion(false, GTMErrorFactory.make("DataLayer push selector unavailable"))
-        }
+        forwardEvent([key: value], on: container, completion: completion)
     }
 
     public func getValue(key: String, completion: @escaping (Any?, NSError?) -> Void) {
@@ -123,28 +113,57 @@ private enum GTMRuntime {
     }
 
     public func reset(completion: @escaping (Bool, NSError?) -> Void) {
-        guard let dataLayer = currentDataLayer() else {
+        guard initialized, let container = container else {
             completion(false, GTMErrorFactory.make("Google Tag Manager not initialized"))
             return
         }
 
-        if GTMRuntime.instanceResponds(dataLayer, to: pushSelector) {
-            _ = dataLayer.perform(pushSelector, with: ["gtm.clear": true])
+        forwardEvent(["gtm.clear": true], on: container, completion: completion)
+    }
+
+    private func forwardEvent(_ payload: [String: Any], on container: NSObject, completion: @escaping (Bool, NSError?) -> Void) {
+        if GTMRuntime.instanceResponds(container, to: forwardEventSelector) {
+            _ = container.perform(forwardEventSelector, with: payload)
             completion(true, nil)
         } else {
-            completion(false, GTMErrorFactory.make("DataLayer push selector unavailable"))
+            completion(false, GTMErrorFactory.make("TAGContainer forwardEvent: selector unavailable"))
         }
     }
 
-    @objc public func containerAvailable(_ availableContainer: AnyObject?) {
-        guard let container = availableContainer as? NSObject else {
-            finishInitialization(success: false, error: GTMErrorFactory.make("Received nil container"))
-            return
+    private func waitForContainer(containerId: String, timeout: Double) {
+        let deadline = Date().addingTimeInterval(timeout)
+
+        while Date() < deadline {
+            if let container = resolveContainer(containerId: containerId) {
+                let state = (container.perform(loadStateSelector)?.takeUnretainedValue() as? NSNumber)?.uintValue ?? 0
+
+                switch TAGContainerLoadState(rawValue: state) {
+                case .loaded:
+                    self.container = container
+                    self.initialized = true
+                    finishInitialization(success: true, error: nil)
+                    return
+                case .failed:
+                    finishInitialization(success: false, error: GTMErrorFactory.make("Failed to load GTM container"))
+                    return
+                case .notLoaded, .loading, .none:
+                    break
+                }
+            }
+
+            Thread.sleep(forTimeInterval: 0.05)
         }
 
-        self.container = container
-        self.initialized = true
-        finishInitialization(success: true, error: nil)
+        finishInitialization(success: false, error: GTMErrorFactory.make("Timed out waiting for GTM container to load"))
+    }
+
+    private func resolveContainer(containerId: String) -> NSObject? {
+        guard let manager = tagManager,
+              let containers = manager.value(forKey: containersKey) as? NSDictionary else {
+            return nil
+        }
+
+        return containers[containerId] as? NSObject
     }
 
     private func finishInitialization(success: Bool, error: NSError?) {
@@ -154,14 +173,6 @@ private enum GTMRuntime {
                 completion(success, error)
             }
         }
-    }
-
-    private func currentDataLayer() -> NSObject? {
-        guard let manager = tagManager else { return nil }
-        if let dataLayer = manager.value(forKey: dataLayerKey) as? NSObject {
-            return dataLayer
-        }
-        return nil
     }
 
     private static func resolveTagManager() -> NSObject? {
