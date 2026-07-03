@@ -4,7 +4,7 @@ import pkg from './package.json';
 
 const config: CapacitorConfig = {
   appId: 'app.capgo.gtm',
-  appName: 'GTM Example',
+  appName: '@capgo/capacitor-gtm',
   webDir: 'dist',
   plugins: {
     SplashScreen: {
