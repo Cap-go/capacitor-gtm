@@ -54,7 +54,7 @@ dependencies {
     implementation project(':capacitor-android')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.core:core:$androidxCoreVersion"
-    implementation 'com.google.android.gms:play-services-tagmanager:18.1.1'
+    implementation 'com.google.android.gms:play-services-tagmanager:18.3.0'
     implementation('com.google.android.gms:play-services-tagmanager-v4-impl:18.1.1') {
         exclude group: 'com.google.android.gms', module: 'play-services-analytics-impl'
     }
