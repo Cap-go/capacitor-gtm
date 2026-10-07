@@ -17,12 +17,12 @@ Use Google Tag Manager in your Capacitor app with the official GTM SDKs on iOS a
 
 ## Key features
 
-- **Container**: `initialize()` loads your GTM container ID with an optional timeout.
+- **Container**: `initialize()` loads your GTM container ID, with an optional timeout on native.
 - **Events**: `push()` sends events with parameters to the dataLayer.
 - **User properties**: `setUserProperty()` sets values for tags and triggers.
 - **Read values**: `getValue()` reads a value from the container.
 - **Reset**: `reset()` clears the instance and its data.
-- **Platforms**: iOS, Android and Web.
+- **Platforms**: iOS, Android and Web. The web adapter ignores `timeout`.
 
 A Capacitor plugin for integrating Google Tag Manager into your mobile applications.
 
