@@ -1,6 +1,28 @@
 # Capacitor Google Tag Manager Plugin
 
-<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-gtm" alt="Capgo - Instant updates for Capacitor" /></a>
+Use Google Tag Manager in your Capacitor app with the official GTM SDKs on iOS and Android. Push events and user properties to your container without app updates for every tag change.
+
+<a href="https://capgo.app/?ref=plugin_gtm"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-gtm" alt="Capgo - Instant updates for Capacitor" /></a>
+
+<div align="center">
+  <p><b>Capgo</b>: open-source live updates for Ionic and Capacitor apps. Ship OTA fixes and features instantly, without waiting for app store review.</p>
+  <h2><a href="https://capgo.app/register/?ref=plugin_gtm">➡️ Get started for free</a></h2>
+  <p>14-day unlimited free trial. No credit card required</p>
+  <p><a href="https://capgo.app/consulting/?ref=plugin_gtm">Missing a feature? We'll build the plugin for you 💪</a></p>
+</div>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Cap-go/capacitor-gtm/main/assets/github-social-preview.png" alt="@capgo/capacitor-gtm for Capacitor apps" width="300" />
+</p>
+
+## Key features
+
+- **Container**: `initialize()` loads your GTM container ID with an optional timeout.
+- **Events**: `push()` sends events with parameters to the dataLayer.
+- **User properties**: `setUserProperty()` sets values for tags and triggers.
+- **Read values**: `getValue()` reads a value from the container.
+- **Reset**: `reset()` clears the instance and its data.
+- **Platforms**: iOS, Android and Web.
 
 A Capacitor plugin for integrating Google Tag Manager into your mobile applications.
 
