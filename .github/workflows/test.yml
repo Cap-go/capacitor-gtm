@@ -1,5 +1,9 @@
 name: Build source code and test it
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
@@ -103,3 +107,27 @@ jobs:
       - name: Verify
         id: verify_code
         run: bun run verify:web
+  upsert_beta_comment:
+    if: github.event_name == 'pull_request'
+    needs: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Check out scripts
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Upsert beta publish comment
+        uses: actions/github-script@v9.0.0
+        env:
+          IS_SAME_REPO: 'true'
+        with:
+          script: |
+            const upsert = require('./.github/scripts/upsert-pr-beta-comment.js');
+            await upsert({ github, context });
