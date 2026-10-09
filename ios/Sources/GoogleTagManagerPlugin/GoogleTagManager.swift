@@ -66,7 +66,10 @@ private enum GTMErrorFactory {
         }
 
         recordDataLayer([key: value])
-        Analytics.setUserProperty(GTMParameterSanitizer.stringValue(value), forName: GTMParameterSanitizer.parameterName(key))
+        Analytics.setUserProperty(
+            GTMParameterSanitizer.userPropertyValue(value),
+            forName: GTMParameterSanitizer.userPropertyName(key)
+        )
         completion(true, nil)
     }
 
@@ -92,26 +95,34 @@ private enum GTMErrorFactory {
         completion(true, nil)
     }
 
-    private func configureFirebase(timeout: Double) {
-        let deadline = Date().addingTimeInterval(timeout)
+    private func configureFirebase(timeout _: Double) {
+        let work = { [weak self] in
+            guard let self else { return }
 
-        if FirebaseApp.app() == nil {
-            FirebaseApp.configure()
-        }
-
-        while Date() < deadline {
-            if FirebaseApp.app() != nil {
-                if let containerId = containerId {
-                    Analytics.setUserProperty(containerId, forName: "gtm_container_id")
+            if FirebaseApp.app() == nil {
+                guard FirebaseOptions.defaultOptions() != nil else {
+                    self.finishInitialization(
+                        success: false,
+                        error: GTMErrorFactory.make("Firebase is not configured (missing GoogleService-Info.plist)")
+                    )
+                    return
                 }
-                initialized = true
-                finishInitialization(success: true, error: nil)
-                return
+                FirebaseApp.configure()
             }
-            Thread.sleep(forTimeInterval: 0.05)
+
+            if let containerId = self.containerId {
+                Analytics.setUserProperty(containerId, forName: "gtm_container_id")
+            }
+
+            self.initialized = true
+            self.finishInitialization(success: true, error: nil)
         }
 
-        finishInitialization(success: false, error: GTMErrorFactory.make("Timed out waiting for Firebase to initialize"))
+        if Thread.isMainThread {
+            work()
+        } else {
+            DispatchQueue.main.async(execute: work)
+        }
     }
 
     private func recordDataLayer(_ values: [String: Any]) {
@@ -148,14 +159,31 @@ enum GTMParameterSanitizer {
         sanitize(name, maxLength: 40)
     }
 
+    static func userPropertyName(_ name: String) -> String {
+        sanitize(name, maxLength: 24)
+    }
+
+    static func userPropertyValue(_ value: Any) -> String? {
+        guard let stringValue = stringValue(value) else {
+            return nil
+        }
+        if stringValue.count <= 36 {
+            return stringValue
+        }
+        return String(stringValue.prefix(36))
+    }
+
     static func stringValue(_ value: Any) -> String? {
         switch value {
+        case let bool as Bool:
+            return bool ? "true" : "false"
         case let string as String:
             return string
         case let number as NSNumber:
+            if CFGetTypeID(number) == CFBooleanGetTypeID() {
+                return number.boolValue ? "true" : "false"
+            }
             return number.stringValue
-        case let bool as Bool:
-            return bool ? "true" : "false"
         default:
             return String(describing: value)
         }

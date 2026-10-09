@@ -103,7 +103,7 @@ npx cap sync
 The main interface for the Google Tag Manager plugin.
 
 On iOS and Android, native calls are routed through the public Firebase Analytics SDK.
-Link your GTM web container in the Firebase console. Legacy on-device GTM container
+Link your GTM mobile container in the Firebase console. Legacy on-device GTM container
 bundles are no longer loaded by this plugin.
 
 ### initialize(...)
@@ -158,7 +158,9 @@ setUserProperty(options: { key: string; value: string | number | boolean; }) => 
 
 Sets a user property in the Google Tag Manager dataLayer.
 
-On native platforms the value is stored as a Firebase Analytics user property (string).
+On web this pushes `{ [key]: value }` onto `window.dataLayer`. On native platforms the
+same key is stored in the session dataLayer mirror and sent as a Firebase Analytics user
+property (string) so linked GTM tags can read it.
 
 | Param         | Type                                                              | Description                  |
 | ------------- | ----------------------------------------------------------------- | ---------------------------- |

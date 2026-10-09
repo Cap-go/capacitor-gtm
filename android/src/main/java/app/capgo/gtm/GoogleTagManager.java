@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class GoogleTagManager {
 
@@ -47,26 +46,16 @@ public class GoogleTagManager {
             return;
         }
 
-        long timeoutMs = timeout != null ? timeout.longValue() : 2000L;
-        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMs);
-
         try {
-            if (FirebaseApp.getApps(context).isEmpty()) {
-                FirebaseApp.initializeApp(context);
+            if (FirebaseApp.getApps(context).isEmpty() && FirebaseApp.initializeApp(context) == null) {
+                callback.onFailure("Firebase is not configured (missing google-services.json)");
+                return;
             }
 
-            while (System.nanoTime() < deadline) {
-                if (!FirebaseApp.getApps(context).isEmpty()) {
-                    firebaseAnalytics = FirebaseAnalytics.getInstance(context);
-                    firebaseAnalytics.setUserProperty("gtm_container_id", containerId);
-                    initialized = true;
-                    callback.onSuccess();
-                    return;
-                }
-                Thread.sleep(50);
-            }
-
-            callback.onFailure("Timed out waiting for Firebase to initialize");
+            firebaseAnalytics = FirebaseAnalytics.getInstance(context);
+            firebaseAnalytics.setUserProperty("gtm_container_id", containerId);
+            initialized = true;
+            callback.onSuccess();
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize Firebase Analytics", e);
             callback.onFailure(e.getMessage());
@@ -103,8 +92,10 @@ public class GoogleTagManager {
         }
 
         try {
-            recordDataLayer(Map.of(key, value));
-            firebaseAnalytics.setUserProperty(GTMParameterSanitizer.parameterName(key), GTMParameterSanitizer.stringValue(value));
+            Map<String, Object> entry = new HashMap<>();
+            entry.put(key, value);
+            recordDataLayer(entry);
+            firebaseAnalytics.setUserProperty(GTMParameterSanitizer.userPropertyName(key), GTMParameterSanitizer.userPropertyValue(value));
             callback.onSuccess();
         } catch (Exception e) {
             Log.e(TAG, "Failed to set user property", e);
@@ -180,6 +171,21 @@ public class GoogleTagManager {
 
         static String parameterName(String name) {
             return sanitize(name, 40);
+        }
+
+        static String userPropertyName(String name) {
+            return sanitize(name, 24);
+        }
+
+        static String userPropertyValue(Object value) {
+            String valueString = stringValue(value);
+            if (valueString == null) {
+                return null;
+            }
+            if (valueString.length() <= 36) {
+                return valueString;
+            }
+            return valueString.substring(0, 36);
         }
 
         static String stringValue(Object value) {

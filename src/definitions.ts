@@ -2,7 +2,7 @@
  * The main interface for the Google Tag Manager plugin.
  *
  * On iOS and Android, native calls are routed through the public Firebase Analytics SDK.
- * Link your GTM web container in the Firebase console. Legacy on-device GTM container
+ * Link your GTM mobile container in the Firebase console. Legacy on-device GTM container
  * bundles are no longer loaded by this plugin.
  */
 export interface GoogleTagManagerPlugin {
