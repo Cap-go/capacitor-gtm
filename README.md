@@ -28,6 +28,8 @@ A Capacitor plugin for integrating Google Tag Manager into your mobile applicati
 
 > **Note**: This plugin uses the official Google Tag Manager SDK directly for both iOS and Android platforms.
 
+> **App Store warning (guideline 2.5.2)**: on iOS, Google's Tag Manager SDK calls methods by name at runtime. Apple's scanner can flag this and reject your app with a "dynamic code" message under guideline 2.5.2. If your submission is rejected for this reason, remove this plugin from the iOS build and use Firebase Analytics instead. We are not shipping a replacement because Firebase cannot read on-device Tag Manager containers.
+
 ## Documentation
 
 The most complete doc is available here: https://capgo.app/docs/plugins/gtm/
@@ -206,7 +208,9 @@ Get the native Capacitor plugin version
 
 Construct a type with a set of properties K of type T
 
-<code>{ [P in K]: T; }</code>
+<code>{
+ [P in K]: T;
+ }</code>
 
 </docgen-api>
 
