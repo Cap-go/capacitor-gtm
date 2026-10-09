@@ -118,6 +118,10 @@ Provide the GTM container ID so native code can tag analytics with `gtm_containe
 Your app must include Firebase config (`GoogleService-Info.plist` on iOS,
 `google-services.json` on Android). The optional timeout is in milliseconds.
 
+**Not preserved on native (no public Firebase API):** blocking until a legacy on-device
+GTM container file finishes loading (`TAGContainer` / `ContainerHolder`). Initialization
+completes when Firebase Analytics is ready; link the container in the Firebase console.
+
 | Param         | Type                                                    | Description                   |
 | ------------- | ------------------------------------------------------- | ----------------------------- |
 | **`options`** | <code>{ containerId: string; timeout?: number; }</code> | - The initialization options. |
@@ -173,9 +177,13 @@ getValue(options: { key: string; }) => Promise<{ value: any; }>
 
 Gets a value from the in-memory dataLayer mirror maintained by this plugin.
 
-On web, the plugin searches `window.dataLayer`. On iOS and Android, only values
-previously set with `push()` or `setUserProperty()` during the current session are returned.
-Native GTM container macros are not readable through this API.
+On web, the plugin searches `window.dataLayer` from newest to oldest entry.
+On iOS and Android, the plugin uses the same newest-first search over the session
+dataLayer mirror updated by `push()` and `setUserProperty()`.
+
+**Not preserved on native (no public Firebase API):** values that existed only in a
+legacy on-device GTM container (Android `Container.get*`, iOS container key lookup).
+Those keys return `undefined` unless you set them with `push()` or `setUserProperty()`.
 
 | Param         | Type                          | Description                           |
 | ------------- | ----------------------------- | ------------------------------------- |

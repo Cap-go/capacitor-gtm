@@ -13,6 +13,10 @@ export interface GoogleTagManagerPlugin {
    * Your app must include Firebase config (`GoogleService-Info.plist` on iOS,
    * `google-services.json` on Android). The optional timeout is in milliseconds.
    *
+   * **Not preserved on native (no public Firebase API):** blocking until a legacy on-device
+   * GTM container file finishes loading (`TAGContainer` / `ContainerHolder`). Initialization
+   * completes when Firebase Analytics is ready; link the container in the Firebase console.
+   *
    * @param {Object} options - The initialization options.
    * @param {string} options.containerId - The Google Tag Manager container ID (e.g., 'GTM-XXXXXX').
    * @param {number} [options.timeout=2000] - The timeout in milliseconds for Firebase startup.
@@ -45,7 +49,9 @@ export interface GoogleTagManagerPlugin {
   /**
    * Sets a user property in the Google Tag Manager dataLayer.
    *
-   * On native platforms the value is stored as a Firebase Analytics user property (string).
+   * On web this pushes `{ [key]: value }` onto `window.dataLayer`. On native platforms the
+   * same key is stored in the session dataLayer mirror and sent as a Firebase Analytics user
+   * property (string) so linked GTM tags can read it.
    *
    * @param {Object} options - The user property options.
    * @param {string} options.key - The property key name.
@@ -63,9 +69,13 @@ export interface GoogleTagManagerPlugin {
   /**
    * Gets a value from the in-memory dataLayer mirror maintained by this plugin.
    *
-   * On web, the plugin searches `window.dataLayer`. On iOS and Android, only values
-   * previously set with `push()` or `setUserProperty()` during the current session are returned.
-   * Native GTM container macros are not readable through this API.
+   * On web, the plugin searches `window.dataLayer` from newest to oldest entry.
+   * On iOS and Android, the plugin uses the same newest-first search over the session
+   * dataLayer mirror updated by `push()` and `setUserProperty()`.
+   *
+   * **Not preserved on native (no public Firebase API):** values that existed only in a
+   * legacy on-device GTM container (Android `Container.get*`, iOS container key lookup).
+   * Those keys return `undefined` unless you set them with `push()` or `setUserProperty()`.
    *
    * @param {Object} options - The options for retrieving a value.
    * @param {string} options.key - The key to retrieve from the dataLayer.

@@ -6,8 +6,10 @@ import android.util.Log;
 import com.getcapacitor.JSObject;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -17,7 +19,7 @@ public class GoogleTagManager {
 
     private final Context context;
     private FirebaseAnalytics firebaseAnalytics;
-    private final Map<String, Object> dataLayer = new HashMap<>();
+    private final List<Map<String, Object>> dataLayerEntries = new ArrayList<>();
     private boolean initialized = false;
 
     public interface Callback {
@@ -83,7 +85,7 @@ public class GoogleTagManager {
                 payload.putAll(parameters);
             }
             payload.put("event", event);
-            mergeDataLayer(payload);
+            recordDataLayer(payload);
 
             Bundle bundle = GTMParameterSanitizer.toBundle(parameters);
             firebaseAnalytics.logEvent(GTMParameterSanitizer.eventName(event), bundle);
@@ -101,7 +103,7 @@ public class GoogleTagManager {
         }
 
         try {
-            mergeDataLayer(Map.of(key, value));
+            recordDataLayer(Map.of(key, value));
             firebaseAnalytics.setUserProperty(GTMParameterSanitizer.parameterName(key), GTMParameterSanitizer.stringValue(value));
             callback.onSuccess();
         } catch (Exception e) {
@@ -116,7 +118,7 @@ public class GoogleTagManager {
             return;
         }
 
-        callback.onSuccess(dataLayer.get(key));
+        callback.onSuccess(latestDataLayerValue(key));
     }
 
     public void reset(Callback callback) {
@@ -125,7 +127,7 @@ public class GoogleTagManager {
                 firebaseAnalytics.resetAnalyticsData();
             }
 
-            dataLayer.clear();
+            dataLayerEntries.clear();
             firebaseAnalytics = null;
             initialized = false;
             callback.onSuccess();
@@ -135,8 +137,22 @@ public class GoogleTagManager {
         }
     }
 
-    private void mergeDataLayer(Map<String, Object> values) {
-        dataLayer.putAll(values);
+    private void recordDataLayer(Map<String, Object> values) {
+        dataLayerEntries.add(new HashMap<>(values));
+    }
+
+    private Object latestDataLayerValue(String key) {
+        return latestDataLayerValue(dataLayerEntries, key);
+    }
+
+    static Object latestDataLayerValue(List<Map<String, Object>> entries, String key) {
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            Map<String, Object> entry = entries.get(i);
+            if (entry.containsKey(key)) {
+                return entry.get(key);
+            }
+        }
+        return null;
     }
 
     public static Map<String, Object> jsObjectToMap(JSObject jsObject) {

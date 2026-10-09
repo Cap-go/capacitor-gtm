@@ -11,7 +11,7 @@ private enum GTMErrorFactory {
 @objc public final class GTMManager: NSObject {
     private var initialized = false
     private var containerId: String?
-    private var dataLayer: [String: Any] = [:]
+    private var dataLayerEntries: [[String: Any]] = []
     private var initializationCompletion: ((Bool, NSError?) -> Void)?
 
     override public init() {
@@ -52,7 +52,7 @@ private enum GTMErrorFactory {
 
         var payload = parameters ?? [:]
         payload["event"] = event
-        mergeDataLayer(payload)
+        recordDataLayer(payload)
 
         let analyticsParameters = GTMParameterSanitizer.analyticsParameters(from: parameters ?? [:])
         Analytics.logEvent(GTMParameterSanitizer.eventName(event), parameters: analyticsParameters)
@@ -65,7 +65,7 @@ private enum GTMErrorFactory {
             return
         }
 
-        mergeDataLayer([key: value])
+        recordDataLayer([key: value])
         Analytics.setUserProperty(GTMParameterSanitizer.stringValue(value), forName: GTMParameterSanitizer.parameterName(key))
         completion(true, nil)
     }
@@ -76,7 +76,7 @@ private enum GTMErrorFactory {
             return
         }
 
-        completion(dataLayer[key], nil)
+        completion(DataLayerLookup.latestValue(in: dataLayerEntries, for: key), nil)
     }
 
     public func reset(completion: @escaping (Bool, NSError?) -> Void) {
@@ -86,7 +86,7 @@ private enum GTMErrorFactory {
         }
 
         Analytics.resetAnalyticsData()
-        dataLayer.removeAll()
+        dataLayerEntries.removeAll()
         initialized = false
         containerId = nil
         completion(true, nil)
@@ -114,10 +114,8 @@ private enum GTMErrorFactory {
         finishInitialization(success: false, error: GTMErrorFactory.make("Timed out waiting for Firebase to initialize"))
     }
 
-    private func mergeDataLayer(_ values: [String: Any]) {
-        for (key, value) in values {
-            dataLayer[key] = value
-        }
+    private func recordDataLayer(_ values: [String: Any]) {
+        dataLayerEntries.append(values)
     }
 
     private func finishInitialization(success: Bool, error: NSError?) {
@@ -127,6 +125,17 @@ private enum GTMErrorFactory {
                 completion(success, error)
             }
         }
+    }
+}
+
+enum DataLayerLookup {
+    static func latestValue(in entries: [[String: Any]], for key: String) -> Any? {
+        for entry in entries.reversed() {
+            if let value = entry[key] {
+                return value
+            }
+        }
+        return nil
     }
 }
 

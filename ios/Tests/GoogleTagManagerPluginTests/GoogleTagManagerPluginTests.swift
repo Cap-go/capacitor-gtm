@@ -15,4 +15,16 @@ class GoogleTagManagerTests: XCTestCase {
         XCTAssertEqual(GTMParameterSanitizer.stringValue(true), "true")
         XCTAssertEqual(GTMParameterSanitizer.stringValue(42), "42")
     }
+
+    func testDataLayerLookupMatchesWebSearchOrder() {
+        let entries: [[String: Any]] = [
+            ["currency": "USD"],
+            ["event": "purchase"],
+            ["currency": "EUR"],
+        ]
+
+        XCTAssertEqual(DataLayerLookup.latestValue(in: entries, for: "currency") as? String, "EUR")
+        XCTAssertEqual(DataLayerLookup.latestValue(in: entries, for: "event") as? String, "purchase")
+        XCTAssertNil(DataLayerLookup.latestValue(in: entries, for: "missing"))
+    }
 }
