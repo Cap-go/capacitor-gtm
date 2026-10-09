@@ -1,6 +1,6 @@
 # Capacitor Google Tag Manager Plugin
 
-Use Google Tag Manager in your Capacitor app with the official GTM SDKs on iOS and Android. Push events and user properties to your container without app updates for every tag change.
+Use Google Tag Manager in your Capacitor app. Native iOS and Android use the public Firebase Analytics SDK (App Store guideline 2.5.2 safe). Link your GTM container in the Firebase console and push events from JavaScript with the same plugin API.
 
 <a href="https://capgo.app/?ref=plugin_gtm"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-gtm" alt="Capgo - Instant updates for Capacitor" /></a>
 
@@ -20,13 +20,13 @@ Use Google Tag Manager in your Capacitor app with the official GTM SDKs on iOS a
 - **Container**: `initialize()` loads your GTM container ID, with an optional timeout on native.
 - **Events**: `push()` sends events with parameters to the dataLayer.
 - **User properties**: `setUserProperty()` sets values for tags and triggers.
-- **Read values**: `getValue()` reads a value from the container.
+- **Read values**: `getValue()` reads the in-memory dataLayer mirror (web searches `window.dataLayer`).
 - **Reset**: `reset()` clears the instance and its data.
 - **Platforms**: iOS, Android and Web. The web adapter ignores `timeout`.
 
 A Capacitor plugin for integrating Google Tag Manager into your mobile applications.
 
-> **Note**: This plugin uses the official Google Tag Manager SDK directly for both iOS and Android platforms.
+> **Note**: iOS and Android route events through Firebase Analytics. Web keeps using the GTM JavaScript snippet. You still pass your `GTM-XXXXXX` container ID to `initialize()`; native code stores it as the `gtm_container_id` user property for debugging.
 
 ## Documentation
 
@@ -68,19 +68,20 @@ npx cap sync
 
 ### iOS Setup
 
-1. **Add GTM container file**
-   - Download your container from Google Tag Manager console (GTM-XXXXXX.json)
-   - In Xcode, add the file to your project
-   - Make sure to add it to your app target
+1. **Add Firebase config**
+   - Create or open your Firebase project and add the iOS app
+   - Download `GoogleService-Info.plist` and add it to your Xcode app target
+2. **Link GTM in Firebase**
+   - In the Firebase console, open Google Tag Manager and link the mobile container ID you pass to `initialize()`
 
 ### Android Setup
 
-1. **Add GTM container file**
-   - Download the Android default container from Google Tag Manager
-   - Add it as a raw resource in `android/app/src/main/res/raw/`
-   - Rename the file if needed so it uses only lowercase letters, digits, and underscores
-   - The plugin resolves the resource name from your container ID, for example `GTM-ABCD12` becomes `res/raw/gtm_abcd12`
-   - If you use JSON instead of the downloaded binary, it must be a simple default-container JSON. Full GTM export JSON files are not supported by the Android SDK
+1. **Add Firebase config**
+   - Add the Android app in Firebase and download `google-services.json`
+   - Place it in `android/app/google-services.json`
+   - Apply the Google services Gradle plugin in your app module (see [Firebase Android setup](https://firebase.google.com/docs/android/setup))
+2. **Link GTM in Firebase**
+   - Link the same GTM container in the Firebase console
 
 ## API
 
@@ -101,13 +102,21 @@ npx cap sync
 
 The main interface for the Google Tag Manager plugin.
 
+On iOS and Android, native calls are routed through the public Firebase Analytics SDK.
+Link your GTM web container in the Firebase console. Legacy on-device GTM container
+bundles are no longer loaded by this plugin.
+
 ### initialize(...)
 
 ```typescript
 initialize(options: { containerId: string; timeout?: number; }) => Promise<void>
 ```
 
-Initializes Google Tag Manager with the specified container ID.
+Initializes Google Tag Manager for the app session.
+
+Provide the GTM container ID so native code can tag analytics with `gtm_container_id`.
+Your app must include Firebase config (`GoogleService-Info.plist` on iOS,
+`google-services.json` on Android). The optional timeout is in milliseconds.
 
 | Param         | Type                                                    | Description                   |
 | ------------- | ------------------------------------------------------- | ----------------------------- |
@@ -126,6 +135,8 @@ push(options: { event: string; parameters?: Record<string, any>; }) => Promise<v
 
 Pushes an event to the Google Tag Manager dataLayer.
 
+On native platforms the event is sent with Firebase Analytics `logEvent`.
+
 | Param         | Type                                                                                          | Description          |
 | ------------- | --------------------------------------------------------------------------------------------- | -------------------- |
 | **`options`** | <code>{ event: string; parameters?: <a href="#record">Record</a>&lt;string, any&gt;; }</code> | - The event options. |
@@ -143,6 +154,8 @@ setUserProperty(options: { key: string; value: string | number | boolean; }) => 
 
 Sets a user property in the Google Tag Manager dataLayer.
 
+On native platforms the value is stored as a Firebase Analytics user property (string).
+
 | Param         | Type                                                              | Description                  |
 | ------------- | ----------------------------------------------------------------- | ---------------------------- |
 | **`options`** | <code>{ key: string; value: string \| number \| boolean; }</code> | - The user property options. |
@@ -158,8 +171,11 @@ Sets a user property in the Google Tag Manager dataLayer.
 getValue(options: { key: string; }) => Promise<{ value: any; }>
 ```
 
-Gets a value from the Google Tag Manager dataLayer.
-Searches through the dataLayer for the most recent value of the specified key.
+Gets a value from the in-memory dataLayer mirror maintained by this plugin.
+
+On web, the plugin searches `window.dataLayer`. On iOS and Android, only values
+previously set with `push()` or `setUserProperty()` during the current session are returned.
+Native GTM container macros are not readable through this API.
 
 | Param         | Type                          | Description                           |
 | ------------- | ----------------------------- | ------------------------------------- |
@@ -179,7 +195,9 @@ reset() => Promise<void>
 ```
 
 Resets the Google Tag Manager instance and clears all data.
-This will remove all data from the dataLayer and require re-initialization.
+
+On native platforms this clears the plugin dataLayer mirror and calls Firebase
+`resetAnalyticsData()`. You must call `initialize()` again before pushing events.
 
 **Since:** 1.0.0
 
@@ -309,21 +327,21 @@ await GoogleTagManager.push({
 
 ### iOS Issues
 
-1. **Container not loading**: Ensure the GTM container JSON file is properly added to your Xcode project and included in the app bundle.
+1. **Initialization failures**: Confirm `GoogleService-Info.plist` is in the app target and Firebase is configured before calling `initialize()`.
 
-2. **Build errors**: Make sure you've run `npx cap sync` after installation.
+2. **Build errors**: Run `npx cap sync` after installing the plugin.
 
 ### Android Issues
 
-1. **Container not found**: Verify the default container is available under `android/app/src/main/res/raw/` with a filename like `gtm_xxxxxx.json` or `gtm_xxxxxx.bin`. The resource name (filename without the extension) must match your container ID after lowercasing and replacing `-` with `_`.
+1. **Initialization failures**: Confirm `google-services.json` is present and the Google services Gradle plugin is applied in the app module.
 
-2. **Initialization failures**: Check that the container ID matches your GTM container exactly.
+2. **Events missing in GTM**: Publish the linked container in GTM and allow time for DebugView or Tag Assistant to show events.
 
 ### General Issues
 
 1. **Events not appearing in GTM**: Remember that GTM has a delay in showing real-time events. Also ensure your GTM container is published.
 
-2. **Values returning null**: Make sure the keys exist in your GTM container configuration.
+2. **Values returning null on native**: `getValue()` only returns keys set with `push()` or `setUserProperty()` in the current session. It does not read GTM container variables.
 
 ## License
 

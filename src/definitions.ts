@@ -1,20 +1,30 @@
 /**
  * The main interface for the Google Tag Manager plugin.
+ *
+ * On iOS and Android, native calls are routed through the public Firebase Analytics SDK.
+ * Link your GTM web container in the Firebase console. Legacy on-device GTM container
+ * bundles are no longer loaded by this plugin.
  */
 export interface GoogleTagManagerPlugin {
   /**
-   * Initializes Google Tag Manager with the specified container ID.
+   * Initializes Google Tag Manager for the app session.
+   *
+   * Provide the GTM container ID so native code can tag analytics with `gtm_container_id`.
+   * Your app must include Firebase config (`GoogleService-Info.plist` on iOS,
+   * `google-services.json` on Android). The optional timeout is in milliseconds.
    *
    * @param {Object} options - The initialization options.
    * @param {string} options.containerId - The Google Tag Manager container ID (e.g., 'GTM-XXXXXX').
-   * @param {number} [options.timeout=2000] - The timeout in milliseconds for loading the container.
-   * @returns {Promise<void>} A promise that resolves when GTM is successfully initialized.
+   * @param {number} [options.timeout=2000] - The timeout in milliseconds for Firebase startup.
+   * @returns {Promise<void>} A promise that resolves when native analytics is ready.
    * @since 1.0.0
    */
   initialize(options: { containerId: string; timeout?: number }): Promise<void>;
 
   /**
    * Pushes an event to the Google Tag Manager dataLayer.
+   *
+   * On native platforms the event is sent with Firebase Analytics `logEvent`.
    *
    * @param {Object} options - The event options.
    * @param {string} options.event - The event name to push to the dataLayer.
@@ -35,6 +45,8 @@ export interface GoogleTagManagerPlugin {
   /**
    * Sets a user property in the Google Tag Manager dataLayer.
    *
+   * On native platforms the value is stored as a Firebase Analytics user property (string).
+   *
    * @param {Object} options - The user property options.
    * @param {string} options.key - The property key name.
    * @param {string | number | boolean} options.value - The property value.
@@ -49,8 +61,11 @@ export interface GoogleTagManagerPlugin {
   setUserProperty(options: { key: string; value: string | number | boolean }): Promise<void>;
 
   /**
-   * Gets a value from the Google Tag Manager dataLayer.
-   * Searches through the dataLayer for the most recent value of the specified key.
+   * Gets a value from the in-memory dataLayer mirror maintained by this plugin.
+   *
+   * On web, the plugin searches `window.dataLayer`. On iOS and Android, only values
+   * previously set with `push()` or `setUserProperty()` during the current session are returned.
+   * Native GTM container macros are not readable through this API.
    *
    * @param {Object} options - The options for retrieving a value.
    * @param {string} options.key - The key to retrieve from the dataLayer.
@@ -61,7 +76,9 @@ export interface GoogleTagManagerPlugin {
 
   /**
    * Resets the Google Tag Manager instance and clears all data.
-   * This will remove all data from the dataLayer and require re-initialization.
+   *
+   * On native platforms this clears the plugin dataLayer mirror and calls Firebase
+   * `resetAnalyticsData()`. You must call `initialize()` again before pushing events.
    *
    * @returns {Promise<void>} A promise that resolves when GTM is successfully reset.
    * @since 1.0.0
