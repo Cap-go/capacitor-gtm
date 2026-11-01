@@ -1,10 +1,35 @@
 # Capacitor Google Tag Manager Plugin
 
-<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-gtm" alt="Capgo - Instant updates for Capacitor" /></a>
+Use Google Tag Manager in your Capacitor app with the official GTM SDKs on iOS and Android. Push events and user properties to your container without app updates for every tag change.
+
+<a href="https://capgo.app/?ref=plugin_gtm"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-gtm" alt="Capgo - Build Capacitor apps with AI, ship updates instantly" /></a>
+
+<div align="center">
+  <p><b>Capgo</b>: push fixes to your Capacitor users in minutes, build signed iOS and Android apps without a Mac, and roll back in one click.</p>
+  <h2><a href="https://capgo.app/register/?ref=plugin_gtm">➡️ Get started for free</a></h2>
+  <p>14-day unlimited free trial. No credit card required</p>
+</div>
+
+> 🤖 **Building with an AI coding agent?** Install [Capgo skills](https://capgo.app/skills/?ref=plugin_gtm) so Claude Code, Codex, Cursor, Copilot, or Gemini CLI know how to install and use `@capgo/capacitor-gtm` in your Capacitor app: `npx skills add Cap-go/capgo-skills`. Then ask your agent: *"Add @capgo/capacitor-gtm to my Capacitor app and wire it up."* [Agent setup guides](https://capgo.app/agents/?ref=plugin_gtm) · [Hosted MCP](https://capgo.app/docs/ai/mcp/?ref=plugin_gtm)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Cap-go/capacitor-gtm/main/assets/github-social-preview.png" alt="@capgo/capacitor-gtm for Capacitor apps" width="300" />
+</p>
+
+## Key features
+
+- **Container**: `initialize()` loads your GTM container ID, with an optional timeout on native.
+- **Events**: `push()` sends events with parameters to the dataLayer.
+- **User properties**: `setUserProperty()` sets values for tags and triggers.
+- **Read values**: `getValue()` reads a value from the container.
+- **Reset**: `reset()` clears the instance and its data.
+- **Platforms**: iOS, Android and Web. The web adapter ignores `timeout`.
 
 A Capacitor plugin for integrating Google Tag Manager into your mobile applications.
 
 > **Note**: This plugin uses the official Google Tag Manager SDK directly for both iOS and Android platforms.
+
+> **App Store warning (guideline 2.5.2)**: on iOS, Google's Tag Manager SDK calls methods by name at runtime. Apple's scanner can flag this and reject your app with a "dynamic code" message under guideline 2.5.2. If your submission is rejected for this reason, remove this plugin from the iOS build and use Firebase Analytics instead. We are not shipping a replacement because Firebase cannot read on-device Tag Manager containers.
 
 ## Documentation
 

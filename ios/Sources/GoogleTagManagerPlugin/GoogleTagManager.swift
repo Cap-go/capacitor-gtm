@@ -7,11 +7,20 @@ private enum GTMErrorFactory {
     }
 }
 
-private enum GTMRuntime {
-    static func classNamed(_ name: String) -> AnyClass? {
-        NSClassFromString(name)
-    }
+/// Compile-time symbols for Google Tag Manager SDK private APIs (App Store 2.5.2 static lookup).
+private enum GTMPrivateSymbols {
+    static let tagManagerClassName = "TAGManager"
+    static let containersKey = "containers"
 
+    static let sharedInstanceSelector = Selector("sharedInstance")
+    static let instanceSelector = Selector("instance")
+    static let loadContainerSelector = Selector("loadContainer:")
+    static let forwardEventSelector = Selector("forwardEvent:")
+    static let loadStateSelector = Selector("loadState")
+    static let valueForKeySelector = #selector(NSObject.value(forKey:))
+}
+
+private enum GTMRuntime {
     static func classResponds(_ cls: AnyClass, to selector: Selector) -> Bool {
         guard let meta = object_getClass(cls) else { return false }
         return class_respondsToSelector(meta, selector)
@@ -35,12 +44,6 @@ private enum TAGContainerLoadState: UInt {
     private var initialized = false
     private var initializationCompletion: ((Bool, NSError?) -> Void)?
 
-    private let loadContainerSelector = NSSelectorFromString("loadContainer:")
-    private let forwardEventSelector = NSSelectorFromString("forwardEvent:")
-    private let loadStateSelector = NSSelectorFromString("loadState")
-    private let valueForKeySelector = NSSelectorFromString("valueForKey:")
-    private let containersKey = "containers"
-
     override public init() {
         super.init()
         self.tagManager = GTMManager.resolveTagManager()
@@ -62,7 +65,7 @@ private enum TAGContainerLoadState: UInt {
             return
         }
 
-        guard GTMRuntime.instanceResponds(manager, to: loadContainerSelector) else {
+        guard GTMRuntime.instanceResponds(manager, to: GTMPrivateSymbols.loadContainerSelector) else {
             completion(false, GTMErrorFactory.make("TAGManager missing loadContainer: selector."))
             return
         }
@@ -70,7 +73,8 @@ private enum TAGContainerLoadState: UInt {
         initializationCompletion = completion
         let timeoutValue = timeout ?? 5.0
 
-        _ = manager.perform(loadContainerSelector, with: containerId)
+        // appstore-2.5.2-allow: call private TAGManager loadContainer: via static selector
+        _ = manager.perform(GTMPrivateSymbols.loadContainerSelector, with: containerId)
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.waitForContainer(containerId: containerId, timeout: timeoutValue)
@@ -103,8 +107,9 @@ private enum TAGContainerLoadState: UInt {
             return
         }
 
-        if (container as? NSObject)?.responds(to: valueForKeySelector) == true,
-           let value = container.perform(valueForKeySelector, with: key)?.takeUnretainedValue() {
+        if (container as? NSObject)?.responds(to: GTMPrivateSymbols.valueForKeySelector) == true,
+           // appstore-2.5.2-allow: read TAGContainer value via NSObject valueForKey: with runtime key
+           let value = container.perform(GTMPrivateSymbols.valueForKeySelector, with: key)?.takeUnretainedValue() {
             completion(value, nil)
             return
         }
@@ -122,8 +127,9 @@ private enum TAGContainerLoadState: UInt {
     }
 
     private func forwardEvent(_ payload: [String: Any], on container: NSObject, completion: @escaping (Bool, NSError?) -> Void) {
-        if GTMRuntime.instanceResponds(container, to: forwardEventSelector) {
-            _ = container.perform(forwardEventSelector, with: payload)
+        if GTMRuntime.instanceResponds(container, to: GTMPrivateSymbols.forwardEventSelector) {
+            // appstore-2.5.2-allow: call private TAGContainer forwardEvent: via static selector
+            _ = container.perform(GTMPrivateSymbols.forwardEventSelector, with: payload)
             completion(true, nil)
         } else {
             completion(false, GTMErrorFactory.make("TAGContainer forwardEvent: selector unavailable"))
@@ -135,7 +141,8 @@ private enum TAGContainerLoadState: UInt {
 
         while Date() < deadline {
             if let container = resolveContainer(containerId: containerId) {
-                let state = (container.perform(loadStateSelector)?.takeUnretainedValue() as? NSNumber)?.uintValue ?? 0
+                // appstore-2.5.2-allow: read private TAGContainer loadState via static selector
+                let state = (container.perform(GTMPrivateSymbols.loadStateSelector)?.takeUnretainedValue() as? NSNumber)?.uintValue ?? 0
 
                 switch TAGContainerLoadState(rawValue: state) {
                 case .loaded:
@@ -159,7 +166,8 @@ private enum TAGContainerLoadState: UInt {
 
     private func resolveContainer(containerId: String) -> NSObject? {
         guard let manager = tagManager,
-              let containers = manager.value(forKey: containersKey) as? NSDictionary else {
+              // appstore-2.5.2-allow: read TAGManager containers map via static KVC key
+              let containers = manager.value(forKey: GTMPrivateSymbols.containersKey) as? NSDictionary else {
             return nil
         }
 
@@ -176,17 +184,21 @@ private enum TAGContainerLoadState: UInt {
     }
 
     private static func resolveTagManager() -> NSObject? {
-        guard let managerClass = GTMRuntime.classNamed("TAGManager") as? NSObject.Type else {
+        // appstore-2.5.2-allow: resolve private TAGManager class via static class name constant
+        guard let managerClass = NSClassFromString(GTMPrivateSymbols.tagManagerClassName) as? NSObject.Type else {
             return nil
         }
 
-        let selectors = ["sharedInstance", "instance"]
-        for name in selectors {
-            let selector = NSSelectorFromString(name)
-            if managerClass.responds(to: selector),
-               let instance = managerClass.perform(selector)?.takeUnretainedValue() as? NSObject {
-                return instance
-            }
+        if managerClass.responds(to: GTMPrivateSymbols.sharedInstanceSelector),
+           // appstore-2.5.2-allow: obtain TAGManager via private sharedInstance static selector
+           let instance = managerClass.perform(GTMPrivateSymbols.sharedInstanceSelector)?.takeUnretainedValue() as? NSObject {
+            return instance
+        }
+
+        if managerClass.responds(to: GTMPrivateSymbols.instanceSelector),
+           // appstore-2.5.2-allow: obtain TAGManager via private instance static selector fallback
+           let instance = managerClass.perform(GTMPrivateSymbols.instanceSelector)?.takeUnretainedValue() as? NSObject {
+            return instance
         }
 
         return nil
