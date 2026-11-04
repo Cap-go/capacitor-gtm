@@ -126,7 +126,7 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Upsert beta publish comment
-        uses: actions/github-script@v9.0.0
+        uses: actions/github-script@v9
         env:
           IS_SAME_REPO: 'true'
         with:
